@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Interactive Data Table</title>
+    <style>
+      * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            opacity: 0.8;
+            font-size: 1.1em;
+        }
+
+        /* Controls Section */
+        .controls {
+            padding: 25px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .table-wrapper {
+            min-width: 800px;
+        }
+
+        .advanced-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .advanced-table th {
+            background: #34495e;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .advanced-table th:hover {
+            background: #2c3e50;
+        }
+
+        .advanced-table th.sortable::after {
+            content: '↕';
+            margin-left: 8px;
+            opacity: 0.6;
+        }
+
+        .advanced-table th.sort-asc::after {
+            content: '↑';
+            opacity: 1;
+        }
+
+        .advanced-table th.sort-desc::after {
+            content: '↓';
+            opacity: 1;
+        }
+
+        .advanced-table td {
+            padding: 15px;
+            border-bottom: 1px solid #ecf0f1;
+            transition: all 0.3s ease;
+        }
+
+        .advanced-table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .advanced-table tbody tr:hover {
+            background: #f8f9fa;
+            transform: scale(1.01);
+        }
+
+        .advanced-table tbody tr.fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Status badges */
+        .status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Progress bars */
+        .progress-bar {
+            background: #ecf0f1;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .progress-value {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-high { background: #27ae60; }
+        .progress-medium { background: #f39c12; }
+        .progress-low { background: #e74c3c; }
+
+        /* Table footer */
+        .table-footer {
+            padding: 20px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 5px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .page-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .page-btn:hover:not(.active) {
+            background: #f8f9fa;
+        }
+
+        .table-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                min-width: 100%;
+            }
+            
+            .table-footer {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+   </style>
+</head>
+<body>
+    <div class="container">
+        <div class="table-header">
+            <h1>Advanced Data Table</h1>
+            <p class="subtitle">Interactive table with sorting, filtering, and pagination</p>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search across all columns...">
+                <span class="search-icon">🔍</span>
+            </div>
+            
+            <div class="filters">
+                <select class="filter-select" id="statusFilter">
+                    <option value="">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="pending">Pending</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+                
+                <select class="filter-select" id="departmentFilter">
+                    <option value="">All Departments</option>
+                    <option value="engineering">Engineering</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="sales">Sales</option>
+                    <option value="support">Support</option>
+                </select>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="addRowBtn">Add Row</button>
+                <button class="btn btn-secondary" id="exportBtn">Export CSV</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-wrapper">
+                <table class="advanced-table" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th class="sortable" data-sort="id">ID</th>
+                            <th class="sortable" data-sort="name">Name</th>
+                            <th class="sortable" data-sort="department">Department</th>
+                            <th class="sortable" data-sort="position">Position</th>
+                            <th class="sortable" data-sort="salary">Salary</th>
+                            <th class="sortable" data-sort="progress">Progress</th>
+                            <th data-sort="status">Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="table-footer">
+            <div class="table-info" id="tableInfo">Showing 0 of 0 entries</div>
+            <div class="pagination" id="pagination">
+                <!-- Pagination will be generated by JavaScript -->
+            </div>
+        </div>
+    </div>
+  <script>
+       
+        class AdvancedTable {
+            constructor() {
+                this.data = [];
+                this.filteredData = [];
+                this.currentSort = { column: 'id', direction: 'asc' };
+                this.currentPage = 1;
+                this.rowsPerPage = 8;
+                this.init();
+            }
+
+            init() {
+                this.generateSampleData();
+                this.renderTable();
+                this.setupEventListeners();
+            }
+
+            generateSampleData() {
+                const departments = ['engineering', 'marketing', 'sales', 'support'];
+                const positions = ['Developer', 'Manager', 'Analyst', 'Specialist', 'Director'];
+                const statuses = ['active', 'pending', 'inactive'];
+                
+                for (let i = 1; i <= 50; i++) {
+                    this.data.push({
+                        id: i,
+                        name: ⁠ Employee ${i} ⁠,
+                        department: departments[Math.floor(Math.random() * departments.length)],
+                        position: positions[Math.floor(Math.random() * positions.length)],
+                        salary: Math.floor(Math.random() * 90000) + 30000,
+                        progress: Math.floor(Math.random() * 100) + 1,
+                        status: statuses[Math.floor(Math.random() * statuses.length)]
+                    });
+                }
+                
+                this.filteredData = [...this.data];
+            }
+
+            renderTable() {
+                const tbody = document.getElementById('tableBody');
+                const startIndex = (this.currentPage - 1) * this.rowsPerPage;
+                const endIndex = startIndex + this.rowsPerPage;
+                const pageData = this.filteredData.slice(startIndex, endIndex);
+
+                tbody.innerHTML = '';
+
+                pageData.forEach((row, index) => {
+                    const tr = document.createElement('tr');
+                    tr.classList.add('fade-in');
+                    tr.style.animationDelay = ⁠ ${index * 0.1}s ⁠;
+                    
+                    tr.innerHTML = `
+                        <td>#${row.id}</td>
+                        <td>${row.name}</td>
+                        <td>${this.capitalize(row.department)}</td>
+                        <td>${row.position}</td>
+                        <td>$${row.salary.toLocaleString()}</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-value ${this.getProgressClass(row.progress)}" 
+                                     style="width: ${row.progress}%"></div>
+                            </div>
+                            <small>${row.progress}%</small>
+                        </td>
+                        <td><span class="status status-${row.status}">${row.status}</span></td>
+                        <td>
+                            <button class="btn btn-primary" onclick="table.editRow(${row.id})">Edit</button>
+                            <button class="btn btn-secondary" onclick="table.deleteRow(${row.id})">Delete</button>
+                        </td>
+                    `;                    tbody.appendChild(tr);
+                });
+
+                this.updateTableInfo();
+                this.renderPagination();
+                this.updateSortIndicators();
+            }
+
+            getProgressClass(progress) {
+                if (progress >= 70) return 'progress-high';
+                if (progress >= 40) return 'progress-medium';
+                return 'progress-low';
+            }
+
+            capitalize(str) {
+                return str.charAt(0).toUpperCase() + str.slice(1);
+            }
+
+            setupEventListeners() {
+                // Search functionality
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    this.filterData(e.target.value);
+                });
+
+                // Filter functionality
+                document.getElementById('statusFilter').addEventListener('change', (e) => {
+                    this.filterData();
+                });
+
+                document.getElementById('departmentFilter').addEventListener('change', (e) => {
+                    this.filterData();
+                });
+
+                // Sort functionality
+                document.querySelectorAll('.sortable').forEach(th => {
+                    th.addEventListener('click', () => {
+                        const column = th.dataset.sort;
+                        this.sortData(column);
+                    });
+                });
+
+                // Add row functionality
+                document.getElementById('addRowBtn').addEventListener('click', () => {
+                    this.addRandomRow();
+                });
+
+                // Export functionality
+                document.getElementById('exportBtn').addEventListener('click', () => {
+                    this.exportToCSV();
+                });
+            }
+
+            filterData(searchTerm = '') {
+                const statusFilter = document.getElementById('statusFilter').value;
+                const departmentFilter = document.getElementById('departmentFilter').value;
+                
+                this.filteredData = this.data.filter(row => {
+                    const matchesSearch = !searchTerm || Object.values(row).some(value => 
+                        value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+                    );
+                    
+                    const matchesStatus = !statusFilter || row.status === statusFilter;
+                    const matchesDepartment = !departmentFilter || row.department === departmentFilter;
+                    
+                    return matchesSearch && matchesStatus && matchesDepartment;
+                });
+                
+                this.currentPage = 1;
+                this.renderTable();
+            }
+
+            sortData(column) {
+                if (this.currentSort.column === column) {
+                    this.currentSort.direction = this.currentSort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    this.currentSort.column = column;
+                    this.currentSort.direction = 'asc';
+                }
+                
+                this.filteredData.sort((a, b) => {
+                    let aValue = a[column];
+                    let bValue = b[column];
+                    
+                    if (typeof aValue === 'string') {
+                        aValue = aValue.toLowerCase();
+                        bValue = bValue.toLowerCase();
+                    }
+                    
+                    if (aValue < bValue) return this.currentSort.direction === 'asc' ? -1 : 1;
+                    if (aValue > bValue) return this.currentSort.direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
+                
+                this.renderTable();
+            }
+
+            updateSortIndicators() {
+                document.querySelectorAll('.sortable').forEach(th => {
+                    th.classList.remove('sort-asc', 'sort-desc');
+                    if (th.dataset.sort === this.currentSort.column) {
+                        th.classList.add(⁠ sort-${this.currentSort.direction} ⁠);
+                    }
+                });
+            }
+
+            renderPagination() {
+                const totalPages = Math.ceil(this.filteredData.length / this.rowsPerPage);
+                const pagination = document.getElementById('pagination');
+                
+                pagination.innerHTML = '';
+                
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageBtn = document.createElement('button');
+                    pageBtn.className = ⁠ page-btn ${i === this.currentPage ? 'active' : ''} ⁠;
+                    pageBtn.textContent = i;
+                    pageBtn.addEventListener('click', () => {
+                        this.currentPage = i;
+                        this.renderTable();
+                    });
+                    pagination.appendChild(pageBtn);
+                }
+            }
+
+            updateTableInfo() {
+                const startIndex = (this.currentPage - 1) * this.rowsPerPage + 1;
+                const endIndex = Math.min(startIndex + this.rowsPerPage - 1, this.filteredData.length);
+                const total = this.filteredData.length;
+                
+                document.getElementById('tableInfo').textContent = 
+                    ⁠ Showing ${startIndex} to ${endIndex} of ${total} entries ⁠;
+            }
+
+            addRandomRow() {
+                const departments = ['engineering', 'marketing', 'sales', 'support'];
+                const positions = ['Developer', 'Manager', 'Analyst', 'Specialist'];
+                const statuses = ['active', 'pending'];
+                
+                const newRow = {
+                    id: this.data.length + 1,
+                    name: ⁠ New Employee ${this.data.length + 1} ⁠,
+                    department: departments[Math.floor(Math.random() * departments.length)],
+                    position: positions[Math.floor(Math.random() * positions.length)],
+                    salary: Math.floor(Math.random() * 80000) + 40000,
+                    progress: Math.floor(Math.random() * 100) + 1,
+                    status: 'pending'
+                };
+                
+                this.data.unshift(newRow);
+                this.filterData();
+            }
+
+            editRow(id) {
+                const row = this.data.find(r => r.id === id);
+                alert(⁠ Editing: ${row.name}\nPosition: ${row.position}\nSalary: $${row.salary} ⁠);
+                // In real implementation, open a modal form
+            }
+
+            deleteRow(id) {
+                if (confirm('Are you sure you want to delete this row?')) {
+                    this.data = this.data.filter(r => r.id !== id);
+                    this.filterData();
+                }
+            }
+
+            exportToCSV() {
+                const headers = ['ID', 'Name', 'Department', 'Position', 'Salary', 'Progress', 'Status'];
+                const csvContent = [
+                    headers.join(','),
+                    ...this.filteredData.map(row => [
+                        row.id,
+                        ⁠ "${row.name}" ⁠,
+                        row.department,
+                        row.position,
+                        row.salary,
+                        row.progress,
+                        row.status
+                    ].join(','))
+                ].join('\n');
+                
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'table_data.csv';
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
+        }
+
+        // Initialize the table when page loads
+        const table = new AdvancedTable();
+   </script>
+</body>
