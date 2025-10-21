@@ -17,7 +17,7 @@ A feature-rich data table component with sorting, filtering, pagination, and exp
 
 ## 🚀 Live Demo
 
-[View Live Demo](https://yourusername.github.io/data-table)
+[View Live Demo](https://ge-lang.github.io/data-table)
 
 ## 🛠️ Technologies Used
 
@@ -29,7 +29,7 @@ A feature-rich data table component with sorting, filtering, pagination, and exp
 ## 📦 Installation
 
 ```bash
-git clone https://github.com/yourusername/data-table.git
+git clone https://github.com/ge-lang/data-table.git
 cd data-table
 # Open index.html to see demo with sample data
 ```
